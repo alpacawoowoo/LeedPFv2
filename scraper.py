@@ -1,24 +1,28 @@
-# This is a template for a Python scraper on morph.io (https://morph.io)
-# including some code snippets below that you should find helpful
+import requests
+from bs4 import BeautifulSoup
 
-# import scraperwiki
-# import lxml.html
-#
-# # Read in a page
-# html = scraperwiki.scrape("http://foo.com")
-#
-# # Find something on the page using css selectors
-# root = lxml.html.fromstring(html)
-# root.cssselect("div[align='left']")
-#
-# # Write out to the sqlite database using scraperwiki library
-# scraperwiki.sqlite.save(unique_keys=['name'], data={"name": "susan", "occupation": "software developer"})
-#
-# # An arbitrary query against the database
-# scraperwiki.sql.select("* from data where 'name'='peter'")
+def get_planning_comments(url):
+    # Send a GET request to the URL
+    response = requests.get(url)
+    
+    # Check if the request was successful
+    if response.status_code != 200:
+        raise Exception(f"Failed to load page {url}")
+    
+    # Parse the HTML content
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    # Assuming comments are in <div> tags with class "comment"
+    comments = soup.find_all('div', class_='comment')
+    
+    # Extract text from each comment
+    comments_text = [comment.get_text(strip=True) for comment in comments]
+    
+    return comments_text
 
-# You don't have to do things with the ScraperWiki and lxml libraries.
-# You can use whatever libraries you want: https://morph.io/documentation/python
-# All that matters is that your final data is written to an SQLite database
-# called "data.sqlite" in the current working directory which has at least a table
-# called "data".
+# Example usage
+if __name__ == "__main__":
+    url = "https://example.com/planning-comments"
+    comments = get_planning_comments(url)
+    for idx, comment in enumerate(comments, start=1):
+        print(f"Comment {idx}: {comment}")
